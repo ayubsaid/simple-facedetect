@@ -22,11 +22,22 @@ try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
         host="localhost",
-        database="your_database_name",
-        user="your_username",
-        password="your_password"
+        database="postgres",
+        user="postgres",
+        password="1234"
     )
     cur = conn.cursor()
+
+    # Create the face_recognition table if it doesn't exist
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS face_recognition (
+            id SERIAL PRIMARY KEY,
+            time TIMESTAMP,
+            name VARCHAR(255),
+            image_data BYTEA
+        )
+    """)
+    conn.commit()
 
     while True:
         ret, frame = cap.read()
@@ -55,8 +66,8 @@ try:
 
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
-                    # Generate filename with timestamp
-                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                    # Generate timestamp in standard format
+                    timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
                     filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
                     # Crop the face region
@@ -66,19 +77,23 @@ try:
                     cv2.imwrite(filename, crop_img)
                     print(f"Saved updated face image to: {filename}")
 
+                    # Read the image file as binary data
+                    with open(filename, 'rb') as img_file:
+                        image_data = img_file.read()
+
                     # Update the last detection time for the face
                     known_faces[name] = current_time
 
                     # Insert the details into the PostgreSQL database
                     cur.execute("""
-                        INSERT INTO face_recognition (timestamp, name, size)
+                        INSERT INTO face_recognition (time, name, image_data)
                         VALUES (%s, %s, %s)
-                    """, (timestamp, name, os.path.getsize(filename)))
+                    """, (timestamp, name, psycopg2.Binary(image_data)))
                     conn.commit()
 
             else:
-                # Generate filename with timestamp
-                timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                # Generate timestamp in standard format
+                timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
                 filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
                 # Crop the face region
@@ -88,14 +103,18 @@ try:
                 cv2.imwrite(filename, crop_img)
                 print(f"Saved new face image to: {filename}")
 
+                # Read the image file as binary data
+                with open(filename, 'rb') as img_file:
+                    image_data = img_file.read()
+
                 # Add the face and detection time to the known_faces dictionary
                 known_faces[name] = current_time
 
                 # Insert the details into the PostgreSQL database
                 cur.execute("""
-                    INSERT INTO face_recognition (timestamp, name, size)
+                    INSERT INTO face_recognition (timestamp, name, image_data)
                     VALUES (%s, %s, %s)
-                """, (timestamp, name, os.path.getsize(filename)))
+                """, (timestamp, name, psycopg2.Binary(image_data)))
                 conn.commit()
 
             # Display the name on the rectangle
