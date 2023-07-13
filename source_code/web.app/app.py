@@ -1,9 +1,7 @@
-# app.py
-
 from flask import Flask, render_template
 import psycopg2
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='')
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
@@ -13,15 +11,14 @@ conn = psycopg2.connect(
     password="1234"
 )
 cur = conn.cursor()
-
+print('connecting is successful')
 # Route to display face records
 @app.route('/')
 def show_face_records():
     cur.execute("SELECT * FROM face_recognition")
+    print('still successful')
     records = cur.fetchall()
     return render_template('records.html', records=records)
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
-
-
