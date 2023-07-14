@@ -2,41 +2,36 @@ import cv2
 import socket
 import numpy as np
 
+print(cv2.getBuildInformation())
+
 # Open a video capture device (e.g., webcam)
 cap = cv2.VideoCapture()
-cap.open(${{ secrets.RTSPCAM }})
+cap.open('rtsp://admin:asd123()@192.168.0.64:554/Streaming/channels/2/')
 
 # Create a socket for network communication
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = (${{secrets.IP}}, 8485)
+server_address = ('185.183.242.198', 10050)
 client_socket.connect(server_address)
-
-# Video encoding parameters
-fourcc = cv2.VideoWriter_fourcc(*'H264')
-out = cv2.VideoWriter('encoded_video.mp4', fourcc, 20.0, (640, 480))
 
 while True:
     # Read a frame from the video capture device
     ret, frame = cap.read()
 
-    # Encode the frame into H.264 format
-    _, encoded_frame = cv2.imencode('.mp4', frame)
-
-    # Convert the encoded frame to a byte array
-    encoded_data = np.array(encoded_frame).tobytes()
-
-    # Send the encoded frame over the network
-    client_socket.sendall(encoded_data)
-
-    # Write the encoded frame to the output file
-    #out.write(frame)
-
-    # Break the loop if needed (e.g., press 'q' to quit)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # Check if the frame was successfully captured
+    if not ret:
         break
+
+    # Encode the frame into a video format (e.g., MJPEG or H.264)
+    _, encoded_frame = cv2.imencode('.mp4', frame)
+    
+    cv2.imshow('Received Frame', frame)
+    # Convert the encoded frame to bytes
+    frame_bytes = encoded_frame.tobytes()
+
+    # Send the frame bytes over the network
+    client_socket.sendall(frame_bytes)
 
 # Release the resources
 cap.release()
-out.release()
 client_socket.close()
 cv2.destroyAllWindows()
