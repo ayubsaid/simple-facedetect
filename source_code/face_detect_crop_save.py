@@ -7,27 +7,30 @@ from simple_facerec import SimpleFacerec
 images_folder = 'images1/'
 time_limit = datetime.timedelta(seconds=20)
 
+
+face_locations = []
+face_names = []
+
 # Encode faces from a folder
 sfr = SimpleFacerec()
 sfr.load_encoding_images("face_database/")
 
 # Load Camera
-cap = cv2.VideoCapture(0)  # Set the appropriate device index or video file path
+cap = cv2.VideoCapture(0)
+
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
 
 known_faces = {}  # Dictionary to store the names and last detection times of already detected faces
-
 try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
-        host="localhost",
+        host="185.183.242.198",
         database="postgres",
         user="postgres",
-        password="1234"
+        password="postgres"
     )
     cur = conn.cursor()
-
     # Create the face_recognition table if it doesn't exist
     cur.execute("""
         CREATE TABLE IF NOT EXISTS face_recognition (
@@ -38,31 +41,35 @@ try:
         )
     """)
     conn.commit()
-
     while True:
         ret, frame = cap.read()
-
+        print(4)
         # Perform face recognition
         face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=0.50)
 
         current_time = datetime.datetime.now()
+        print(4)
 
         for (top, right, bottom, left), name in zip(face_locations, face_names):
+            print(5)
             if not name:
                 name = 'Unknown'
 
             # Draw a rectangle around the face
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            print(6)
 
             # Create folder if it doesn't exist
             folder_path = os.path.join(images_folder, name)
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
+            print(7)
 
             # Check if the face is already known and detected
             if name in known_faces:
                 last_detection_time = known_faces[name]
                 time_difference = current_time - last_detection_time
+                print(8)
 
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
