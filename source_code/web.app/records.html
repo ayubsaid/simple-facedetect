@@ -1,7 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PostgreSQL Records</title>
+    <title>List of detected faces</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #007bff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ccc;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .face-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .oval {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #007bff;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .oval img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
     <h1>PostgreSQL Records</h1>
@@ -10,8 +73,9 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Time</th>
                 <th>Name</th>
+                <th>Email</th>
+                <th>Face Image</th>
             </tr>
         </thead>
         <tbody>
@@ -20,6 +84,11 @@
                 <td>{{ record[0] }}</td>
                 <td>{{ record[1] }}</td>
                 <td>{{ record[2] }}</td>
+                <td class="center">
+                    <div class="oval">
+                        <img src="{{ record[3] }}" alt="Face Image" class="face-image">
+                    </div>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
