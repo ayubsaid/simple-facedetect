@@ -38,6 +38,17 @@ try:
         )
     """)
     conn.commit()
+    # Create the users table if it doesn't exist
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL
+        )
+    """)
+
+    conn.commit()
+
     while True:
         ret, frame = cap.read()
         # Perform face recognition
