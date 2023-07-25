@@ -74,5 +74,12 @@ def login():
 
     return render_template('login.html')
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Clear the session data
+    session.clear()
+    return redirect(url_for('login'))
+
+
 if __name__ == '__main__':
     app.run(port=5003, debug=True)
