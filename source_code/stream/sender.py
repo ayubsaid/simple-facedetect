@@ -1,35 +1,32 @@
 import cv2
 import socket
-import numpy as np
+import time
 
-print(cv2.getBuildInformation())
+#print(cv2.getBuildInformation())
 
 # Open a video capture device (e.g., webcam)
-cap = cv2.VideoCapture()
-cap.open('rtsp://admin:asd123()@192.168.0.64:554/Streaming/channels/2/')
+cap = cv2.VideoCapture(0)
 
 # Create a socket for network communication
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('185.183.242.198', 10050)
+server_address = ('', 10050)
 client_socket.connect(server_address)
 
 while True:
     # Read a frame from the video capture device
     ret, frame = cap.read()
 
-    # Check if the frame was successfully captured
+    # Check if the frame was successfully capturedpyth  
     if not ret:
         break
 
     # Encode the frame into a video format (e.g., MJPEG or H.264)
-    _, encoded_frame = cv2.imencode('.mp4', frame)
+    _, encoded_frame = cv2.imencode('.jpg', frame)
     
-    cv2.imshow('Received Frame', frame)
-    # Convert the encoded frame to bytes
-    frame_bytes = encoded_frame.tobytes()
+    #cv2.imshow('Received Frame', frame)
 
-    # Send the frame bytes over the network
-    client_socket.sendall(frame_bytes)
+    client_socket.sendall(encoded_frame.tobytes())
+    time.sleep(0.1) 
 
 # Release the resources
 cap.release()
