@@ -1,12 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import base64
+import os
+
 
 app = Flask(__name__, template_folder='', static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost/postgres'
 app.secret_key = 'mysecretkey'
 db = SQLAlchemy(app)
+
 
 # Define the model for the face_recognition table
 class FaceRecognition(db.Model):
@@ -14,6 +17,7 @@ class FaceRecognition(db.Model):
     time = db.Column(db.TIMESTAMP)
     name = db.Column(db.String(255))
     image_data = db.Column(db.LargeBinary)
+
 
 # Define the model for the users table
 class User(db.Model):
@@ -24,6 +28,7 @@ class User(db.Model):
 
     # Specify the custom table name "users"
     __tablename__ = "users"
+
 
 # Route to display face records with pagination
 @app.route('/')
@@ -63,8 +68,10 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
 
         if user:
-            # Set the session variable to indicate that the user is logged in
+            # Set the logged_in and admin_user session variables
             session['logged_in'] = True
+            session['admin_user'] = (user.username == 'admin')
+
             # Update the last login time for the user
             user.last_login = datetime.utcnow()
             db.session.commit()
@@ -74,11 +81,64 @@ def login():
 
     return render_template('login.html')
 
+
+# Log out route
 @app.route('/logout', methods=['POST'])
 def logout():
     # Clear the session data
     session.clear()
     return redirect(url_for('login'))
+
+
+
+# Route to edit the name of the detected face file
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit_name(id):
+    # Check if the user is logged in and is an admin user
+    if 'logged_in' not in request.cookies or request.cookies['logged_in'] != 'True' or not session.get('admin_user', False):
+        return redirect(url_for('login'))
+
+    record = FaceRecognition.query.get(id)
+    if not record:
+        return "Record not found", 404
+
+    if request.method == 'POST':
+        new_name = request.form['new_name']
+
+        # Update the name of the detected face file in the database
+        record.name = new_name
+        db.session.commit()
+
+        return redirect(url_for('show_face_records'))
+
+    return render_template('edit_name.html', record=record)
+
+
+
+# Route to delete the detected face record from the database
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_record(id):
+    # Check if the user is logged in and is an admin user
+    if 'logged_in' not in request.cookies or request.cookies['logged_in'] != 'True' or not session.get('admin_user', False):
+        return redirect(url_for('login'))
+
+    record = FaceRecognition.query.get(id)
+    if not record:
+        return "Record not found", 404
+
+    # Delete the detected face record from the database
+    db.session.delete(record)
+    db.session.commit()
+
+    # Delete the corresponding image file from the folder
+    folder_path = 'images1/' + record.name
+    image_filename = f"{record.name}-{record.time.strftime('%Y-%m-%d_%H-%M-%S')}.jpg"
+    image_path = os.path.join(folder_path, image_filename)
+    if os.path.exists(image_path):
+        os.remove(image_path)
+
+    flash('Record deleted successfully', 'success')
+    return redirect(url_for('show_face_records'))
 
 
 if __name__ == '__main__':
