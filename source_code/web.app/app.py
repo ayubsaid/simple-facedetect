@@ -10,6 +10,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost/po
 app.secret_key = 'mysecretkey'
 db = SQLAlchemy(app)
 
+# --------------------------------------------------------------------------------------------------
 
 # Define the model for the face_recognition table
 class FaceRecognition(db.Model):
@@ -29,6 +30,7 @@ class User(db.Model):
     # Specify the custom table name "users"
     __tablename__ = "users"
 
+# --------------------------------------------------------------------------------------------------
 
 # Route to display face records with pagination
 @app.route('/')
@@ -57,6 +59,8 @@ def show_face_records():
 
     return render_template('records.html', records=records_with_images, pagination=records)
 
+# --------------------------------------------------------------------------------------------------
+
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -81,6 +85,7 @@ def login():
 
     return render_template('login.html')
 
+# --------------------------------------------------------------------------------------------------
 
 # Log out route
 @app.route('/logout', methods=['POST'])
@@ -89,13 +94,13 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-
+# --------------------------------------------------------------------------------------------------
 
 # Route to edit the name of the detected face file
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_name(id):
     # Check if the user is logged in and is an admin user
-    if 'logged_in' not in request.cookies or request.cookies['logged_in'] != 'True' or not session.get('admin_user', False):
+    if not session.get('logged_in') or not session.get('admin_user'):
         return redirect(url_for('login'))
 
     record = FaceRecognition.query.get(id)
@@ -113,13 +118,13 @@ def edit_name(id):
 
     return render_template('edit_name.html', record=record)
 
-
+# --------------------------------------------------------------------------------------------------
 
 # Route to delete the detected face record from the database
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_record(id):
     # Check if the user is logged in and is an admin user
-    if 'logged_in' not in request.cookies or request.cookies['logged_in'] != 'True' or not session.get('admin_user', False):
+    if not session.get('logged_in') or not session.get('admin_user'):
         return redirect(url_for('login'))
 
     record = FaceRecognition.query.get(id)
