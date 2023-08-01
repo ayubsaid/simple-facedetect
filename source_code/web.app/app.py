@@ -99,24 +99,46 @@ def logout():
 # Route to edit the name of the detected face file
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_name(id):
-    # Check if the user is logged in and is an admin user
-    if not session.get('logged_in') or not session.get('admin_user'):
+    # Check if the user is logged in
+    if 'logged_in' not in session or not session['logged_in']:
         return redirect(url_for('login'))
 
     record = FaceRecognition.query.get(id)
     if not record:
         return "Record not found", 404
 
+    # Check if the user is an admin or a regular user
+    admin_user = session.get('admin_user', False)
+
     if request.method == 'POST':
-        new_name = request.form['new_name']
+        action = request.form['action']
 
-        # Update the name of the detected face file in the database
-        record.name = new_name
-        db.session.commit()
+        if action == 'delete' and admin_user:
+            # Delete the detected face record from the database
+            db.session.delete(record)
+            db.session.commit()
 
-        return redirect(url_for('show_face_records'))
+            # Delete the corresponding image file from the folder
+            folder_path = 'images1/' + record.name
+            image_filename = f"{record.name}-{record.time.strftime('%Y-%m-%d_%H-%M-%S')}.jpg"
+            image_path = os.path.join(folder_path, image_filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
+            flash('Record deleted successfully', 'success')
+            return redirect(url_for('show_face_records'))
+
+        elif action == 'edit':
+            # Update the name of the detected face file in the database
+            new_name = request.form['new_name']
+            record.name = new_name
+            db.session.commit()
+
+            flash('Name updated successfully', 'success')
+            return redirect(url_for('show_face_records'))
 
     return render_template('edit_name.html', record=record)
+
 
 # --------------------------------------------------------------------------------------------------
 
