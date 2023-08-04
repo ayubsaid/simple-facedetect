@@ -3,12 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import base64
 import os
+from flask_cors import CORS
 
 
 app = Flask(__name__, template_folder='', static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost/postgres'
 app.secret_key = 'mysecretkey'
 db = SQLAlchemy(app)
+
+# Enable CORS for all routes
+CORS(app)
 
 # --------------------------------------------------------------------------------------------------
 
