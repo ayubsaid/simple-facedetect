@@ -30,7 +30,7 @@ try:
     cur = conn.cursor()
     # Create the face_recognition table if it doesn't exist
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS face_recognition (
+        CREATE TABLE IF NOT EXISTS face_recognition1 (
             id SERIAL PRIMARY KEY,
             time TIMESTAMP,
             name VARCHAR(255),
@@ -89,7 +89,7 @@ try:
 
                     # Insert the details into the PostgreSQL database
                     cur.execute("""
-                        INSERT INTO face_recognition (time, name, image_data)
+                        INSERT INTO face_recognition1 (time, name, image_data)
                         VALUES (%s, %s, %s)
                     """, (timestamp, name, psycopg2.Binary(image_data)))
                     conn.commit()
@@ -115,7 +115,7 @@ try:
 
                 # Insert the details into the PostgreSQL database
                 cur.execute("""
-                    INSERT INTO face_recognition (time, name, image_data)
+                    INSERT INTO face_recognition1 (time, name, image_data)
                     VALUES (%s, %s, %s)
                 """, (timestamp, name, psycopg2.Binary(image_data)))
                 conn.commit()
