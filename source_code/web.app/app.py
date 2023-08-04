@@ -4,6 +4,9 @@ from datetime import datetime
 import base64
 import os
 from flask_cors import CORS
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
 
 
 app = Flask(__name__, template_folder='', static_folder='static')
@@ -22,6 +25,7 @@ class FaceRecognition(db.Model):
     time = db.Column(db.TIMESTAMP)
     name = db.Column(db.String(255))
     image_data = db.Column(db.LargeBinary)
+    __tablename__ = 'face_recognition1'  # Change this line to the correct table name
 
 
 # Define the model for the users table
@@ -86,7 +90,6 @@ def login():
             return redirect(url_for('show_face_records'))
         else:
             return render_template('login.html', message="Invalid username or password")
-
     return render_template('login.html')
 
 # --------------------------------------------------------------------------------------------------
@@ -173,4 +176,4 @@ def delete_record(id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5003, debug=True)
+    app.run(host='0.0.0.0',port=5003, debug=True)
