@@ -43,7 +43,7 @@ class User(db.Model):
 
 
 @app.route('/')
-def show_face_records():
+def list():
     # Check if user is logged in
     if 'logged_in' not in session or not session['logged_in']:
         return jsonify(message="Unauthorized"), 401  # Unauthorized status code
@@ -136,7 +136,7 @@ def edit_name(id):
                 os.remove(image_path)
 
             flash('Record deleted successfully', 'success')
-            return redirect(url_for('show_face_records'))
+            return redirect(url_for('list'))
 
         elif action == 'edit':
             # Update the name of the detected face file in the database
@@ -145,7 +145,7 @@ def edit_name(id):
             db.session.commit()
 
             flash('Name updated successfully', 'success')
-            return redirect(url_for('show_face_records'))
+            return redirect(url_for('list'))
 
     return render_template('edit_name.html', record=record)
 
@@ -175,7 +175,7 @@ def delete_record(id):
         os.remove(image_path)
 
     flash('Record deleted successfully', 'success')
-    return redirect(url_for('show_face_records'))
+    return redirect(url_for('list'))
 
 
 if __name__ == '__main__':
