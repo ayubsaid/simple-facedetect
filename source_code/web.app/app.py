@@ -40,19 +40,20 @@ class User(db.Model):
 
 # --------------------------------------------------------------------------------------------------
 
-# Route to display face records with pagination
+
+
 @app.route('/')
 def show_face_records():
     # Check if user is logged in
     if 'logged_in' not in session or not session['logged_in']:
-        return redirect(url_for('login'))
+        return jsonify(message="Unauthorized"), 401  # Unauthorized status code
 
     page = request.args.get('page', 1, type=int)
     per_page = 7  # Number of records per page
 
     records = FaceRecognition.query.order_by(FaceRecognition.time.desc()).paginate(page=page, per_page=per_page)
 
-    # Convert image data to Base64 and update the record
+    # Convert image data to Base64 and build the JSON response
     records_with_images = []
     for record in records.items:
         image_data = record.image_data
@@ -65,12 +66,11 @@ def show_face_records():
         }
         records_with_images.append(record_with_image)
 
-    return render_template('records.html', records=records_with_images, pagination=records)
+    return jsonify(records=records_with_images, pagination=records.page), 200  # OK status code
 
 # --------------------------------------------------------------------------------------------------
 
-# Login page
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -87,10 +87,13 @@ def login():
             # Update the last login time for the user
             user.last_login = datetime.utcnow()
             db.session.commit()
-            return redirect(url_for('show_face_records'))
+
+            return jsonify(message="Login successful"), 200  # OK status code
         else:
-            return render_template('login.html', message="Invalid username or password")
-    return render_template('login.html')
+            return jsonify(message="Invalid username or password"), 401  # Unauthorized status code
+
+    # Return an error response if the request method is not POST
+    return jsonify(message="Method not allowed"), 405  # Method Not Allowed status code
 
 # --------------------------------------------------------------------------------------------------
 
