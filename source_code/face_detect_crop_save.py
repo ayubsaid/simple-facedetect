@@ -54,6 +54,8 @@ try:
             # Draw a rectangle around the face
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
+            # Convert the cropped image to grayscale
+            crop_img_gray = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
 
             # Create folder if it doesn't exist
             folder_path = os.path.join(images_folder, name)
@@ -102,11 +104,11 @@ try:
                 # Crop the face region
                 crop_img = frame[top:bottom, left:right]
 
-                # Save the cropped image
-                cv2.imwrite(filename, crop_img)
-                print(f"Saved new face image to: {filename}")
+                # Save the grayscale image
+                cv2.imwrite(filename, crop_img_gray)
+                print(f"Saved new grayscale face image to: {filename}")
 
-                # Read the image file as binary data
+                # Read the grayscale image file as binary data
                 with open(filename, 'rb') as img_file:
                     image_data = img_file.read()
 

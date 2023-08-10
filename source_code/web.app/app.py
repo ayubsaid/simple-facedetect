@@ -42,6 +42,9 @@ class User(db.Model):
 
 
 
+# ... (existing code above)
+
+# Route to get the list of face records
 @app.route('/')
 def list():
     # Check if user is logged in
@@ -67,6 +70,9 @@ def list():
         records_with_images.append(record_with_image)
 
     return jsonify(records=records_with_images, pagination=records.page), 200  # OK status code
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5003, debug=True)
 
 # --------------------------------------------------------------------------------------------------
 
@@ -102,7 +108,7 @@ def login():
 def logout():
     # Clear the session data
     session.clear()
-    return redirect(url_for('login'))
+    return jsonify(message='Logout successful'), 200  # OK status code
 
 # --------------------------------------------------------------------------------------------------
 
@@ -179,4 +185,4 @@ def delete_record(id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5003, debug=True)
+    app.run(host='0.0.0.0', port=5003, debug=True)
