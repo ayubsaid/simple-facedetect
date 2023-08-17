@@ -3,6 +3,7 @@ import os
 import datetime
 import psycopg2
 from simple_facerec import SimpleFacerec
+import time
 
 images_folder = 'images1/'
 time_limit = datetime.timedelta(seconds=20)
@@ -19,6 +20,8 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
 
 known_faces = {}  # Dictionary to store the names and last detection times of already detected faces
+
+
 try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
@@ -75,12 +78,9 @@ try:
                     timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
                     filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
-                    # Crop the face region
-                    crop_img = frame[top:bottom, left:right]
-
-                    # Save the cropped image
-                    cv2.imwrite(filename, crop_img)
-                    print(f"Saved updated face image to: {filename}")
+                    # Save the grayscale image
+                    cv2.imwrite(filename, crop_img_gray)  # Save the grayscale image
+                    print(f"Saved new grayscale face image to: {filename}")
 
                     # Read the image file as binary data
                     with open(filename, 'rb') as img_file:
@@ -104,33 +104,38 @@ try:
                 # Crop the face region
                 crop_img = frame[top:bottom, left:right]
 
-                # Save the grayscale image
-                cv2.imwrite(filename, crop_img_gray)
-                print(f"Saved new grayscale face image to: {filename}")
+                # Capture a burst of images
+                for i in range(5):
+                    # Save the grayscale image
+                    cv2.imwrite(filename, crop_img_gray)
+                    print(f"Saved new grayscale face image to: {filename}")
 
-                # Read the grayscale image file as binary data
-                with open(filename, 'rb') as img_file:
-                    image_data = img_file.read()
+                    # Read the image file as binary data
+                    with open(filename, 'rb') as img_file:
+                        image_data = img_file.read()
 
-                # Add the face and detection time to the known_faces dictionary
-                known_faces[name] = current_time
+                    # Add the face and detection time to the known_faces dictionary
+                    known_faces[name] = current_time
 
-                # Insert the details into the PostgreSQL database
-                cur.execute("""
-                    INSERT INTO face_recognition1 (time, name, image_data)
-                    VALUES (%s, %s, %s)
-                """, (timestamp, name, psycopg2.Binary(image_data)))
-                conn.commit()
+                    # Insert the details into the PostgreSQL database
+                    cur.execute("""
+                                        INSERT INTO face_recognition1 (time, name, image_data)
+                                        VALUES (%s, %s, %s)
+                                    """, (timestamp, name, psycopg2.Binary(image_data)))
+                    conn.commit()
 
-            # Display the name on the rectangle
+                    # Add a small delay between captures
+                    time.sleep(0.1)
+
+                # Display the name on the rectangle
             cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
-        # Display the resulting frame
-        cv2.imshow("Frame", frame)
+            # Display the resulting frame
+            cv2.imshow("Frame", frame)
 
-        key = cv2.waitKey(1)
-        if key == 27:
-            break
+            key = cv2.waitKey(1)
+            if key == 27:
+                break
 
 except Exception as e:
     print(f"An error occurred: {str(e)}")
