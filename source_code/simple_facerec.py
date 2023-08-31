@@ -4,10 +4,13 @@ import os
 import datetime
 import glob
 import numpy as np
+import uuid
 import time
 
 class SimpleFacerec:
     def __init__(self):
+        self.encoding_image_paths = None
+        self.encodings = None
         self.known_face_encodings = []
         self.known_face_names = []
 
@@ -47,7 +50,7 @@ class SimpleFacerec:
                             self.known_face_encodings.append(img_encoding)
                             self.known_face_names.append(dir_name)
 
-        print("Encoding images loaded")
+        print("Encoding images loadedvvvv")
 
     def detect_known_faces(self, frame: object) -> object:
         """
@@ -125,3 +128,9 @@ class SimpleFacerec:
 
         cv2.imwrite(filename, crop_img_gray)  # Save the grayscale image
         print(f"Saved cropped face to: {filename}")
+
+    def compare_faces(self, encodings, face_encoding):
+        pass
+
+    def encode_face(self, param):
+        pass
