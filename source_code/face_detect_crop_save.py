@@ -95,7 +95,7 @@ try:
                 if time_difference >= time_limit:
                     sfr.load_encoding_images(images_folder)
                     # Generate timestamp in standard format
-                    timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                    timestamp = current_time.strftime("%Y-%m-%d_%H:%M:%S")
                     filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
                     # Crop the face region
@@ -128,7 +128,7 @@ try:
 
             else:
                 # Generate timestamp in standard format
-                timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                timestamp = current_time.strftime("%Y-%m-%d_%H:%M:%S")
                 filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
                 # Crop the face region
